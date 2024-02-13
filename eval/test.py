@@ -7,12 +7,14 @@ from ical.datamodule import HMEDatamodule
 from ical.lit_ical import LitICAL
 
 seed_everything(7)
-years = {'2014':986, '2016':1147, '2019':1199, 'test':24607}
+years = {'2014': 986, '2016': 1147, '2019': 1199, 'test': 24607}
+
 
 def main(
     folder: str, version: str, test_year: str, max_size: int, scale_to_limit: bool
 ):
-    ckp_folder = os.path.join("lightning_logs", f"version_{version}", "checkpoints")
+    ckp_folder = os.path.join(
+        "lightning_logs", f"version_{version}", "checkpoints")
     fnames = os.listdir(ckp_folder)
     assert len(fnames) == 1
     ckp_path = os.path.join(ckp_folder, fnames[0])
@@ -39,7 +41,7 @@ def main(
         "errors.json",
         os.path.join(ckp_folder, os.pardir, f"errors_{test_year}.json"),
     )
-    
+
     # Calculate ExpRate
     test_num = years[test_year]
     with open(os.path.join(ckp_folder, os.pardir, f"errors_{test_year}.json"), 'r') as jf:
@@ -48,10 +50,10 @@ def main(
         exprate_1 = 0
         exprate_2 = 0
         for _, ele in data.items():
-            if(ele['dist'])<=1:
-                exprate_1+=1
-            if(ele['dist'])<=2:
-                exprate_2+=1
+            if (ele['dist']) <= 1:
+                exprate_1 += 1
+            if (ele['dist']) <= 2:
+                exprate_2 += 1
         exprate_1 = (exprate_1 + exprate)/test_num
         exprate_2 = (exprate_2 + exprate)/test_num
         exprate = exprate/test_num
@@ -59,6 +61,7 @@ def main(
             wf.write(f'ExpRate:  {exprate}\n')
             wf.write(f'ExpRate<=1:  {exprate_1}\n')
             wf.write(f'ExpRate<=2:  {exprate_2}\n')
+
 
 if __name__ == "__main__":
     typer.run(main)

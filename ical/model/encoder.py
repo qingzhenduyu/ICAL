@@ -17,7 +17,8 @@ class _Bottleneck(nn.Module):
         super(_Bottleneck, self).__init__()
         interChannels = 4 * growth_rate
         self.bn1 = nn.BatchNorm2d(interChannels)
-        self.conv1 = nn.Conv2d(n_channels, interChannels, kernel_size=1, bias=False)
+        self.conv1 = nn.Conv2d(n_channels, interChannels,
+                               kernel_size=1, bias=False)
         self.bn2 = nn.BatchNorm2d(growth_rate)
         self.conv2 = nn.Conv2d(
             interChannels, growth_rate, kernel_size=3, padding=1, bias=False
@@ -60,7 +61,8 @@ class _Transition(nn.Module):
     def __init__(self, n_channels: int, n_out_channels: int, use_dropout: bool):
         super(_Transition, self).__init__()
         self.bn1 = nn.BatchNorm2d(n_out_channels)
-        self.conv1 = nn.Conv2d(n_channels, n_out_channels, kernel_size=1, bias=False)
+        self.conv1 = nn.Conv2d(n_channels, n_out_channels,
+                               kernel_size=1, bias=False)
         self.use_dropout = use_dropout
         self.dropout = nn.Dropout(p=0.2)
 
@@ -116,9 +118,11 @@ class DenseNet(nn.Module):
         layers = []
         for _ in range(int(n_dense_blocks)):
             if bottleneck:
-                layers.append(_Bottleneck(n_channels, growth_rate, use_dropout))
+                layers.append(_Bottleneck(
+                    n_channels, growth_rate, use_dropout))
             else:
-                layers.append(_SingleLayer(n_channels, growth_rate, use_dropout))
+                layers.append(_SingleLayer(
+                    n_channels, growth_rate, use_dropout))
             n_channels += growth_rate
         return nn.Sequential(*layers)
 
@@ -146,7 +150,8 @@ class Encoder(pl.LightningModule):
 
         self.model = DenseNet(growth_rate=growth_rate, num_layers=num_layers)
 
-        self.feature_proj = nn.Conv2d(self.model.out_channels, d_model, kernel_size=1)
+        self.feature_proj = nn.Conv2d(
+            self.model.out_channels, d_model, kernel_size=1)
 
         self.pos_enc_2d = ImgPosEnc(d_model, normalize=True)
 

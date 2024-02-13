@@ -20,7 +20,8 @@ class CROHMEVocab:
                 w = line.strip()
                 self.word2idx[w] = len(self.word2idx)
 
-        self.idx2word: Dict[int, str] = {v: k for k, v in self.word2idx.items()}
+        self.idx2word: Dict[int, str] = {
+            v: k for k, v in self.word2idx.items()}
 
     def words2indices(self, words: List[str]) -> List[int]:
         return [self.word2idx[w] for w in words]
@@ -38,8 +39,9 @@ class CROHMEVocab:
 
 vocab = CROHMEVocab()
 
-if __name__ == '__main__': 
+if __name__ == '__main__':
     vocab.init('./data/hme100k/dictionary.txt')
     print(len(vocab))
     print(vocab.word2idx['<space>'])
-    print(vocab.word2idx['{'], vocab.word2idx['}'], vocab.word2idx['^'], vocab.word2idx['_'])
+    print(vocab.word2idx['{'], vocab.word2idx['}'],
+          vocab.word2idx['^'], vocab.word2idx['_'])

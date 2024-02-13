@@ -32,14 +32,15 @@ def _build_transformer_decoder(
         dropout=dropout,
     )
     if cross_coverage or self_coverage:
-        arm = AttentionRefinementModule(nhead, dc, cross_coverage, self_coverage)
+        arm = AttentionRefinementModule(
+            nhead, dc, cross_coverage, self_coverage)
     else:
         arm = None
 
     decoder = TransformerDecoder(decoder_layer, num_decoder_layers, arm)
     return decoder
-    
-    
+
+
 class Decoder(DecodeModel):
     def __init__(
         self,
@@ -51,7 +52,7 @@ class Decoder(DecodeModel):
         dc: int,
         cross_coverage: bool,
         self_coverage: bool,
-        vocab_size: int=114,
+        vocab_size: int = 114,
     ):
         super().__init__()
 
@@ -76,8 +77,10 @@ class Decoder(DecodeModel):
         self.SCCM = SCCM(d_model)
         self.fusion = FusionModule(d_model)
         self.exp_proj = nn.Linear(d_model, vocab_size)
-        self.imp_proj = nn.Sequential(nn.ReLU(), nn.Linear(d_model, vocab_size))
-        self.fusion_proj = nn.Sequential(nn.ReLU(inplace=True), nn.Linear(d_model, vocab_size))
+        self.imp_proj = nn.Sequential(
+            nn.ReLU(), nn.Linear(d_model, vocab_size))
+        self.fusion_proj = nn.Sequential(
+            nn.ReLU(inplace=True), nn.Linear(d_model, vocab_size))
 
     def _build_attention_mask(self, length):
         # lazily create causal attention mask, with full attention between the vision tokens
@@ -146,12 +149,13 @@ class Decoder(DecodeModel):
         exp_out, imp_out, fusion_out = self(src[0], src_mask[0], input_ids)
         return fusion_out
 
+
 class FusionModule(nn.Module):
     def __init__(self,  d_model: int,):
         super(FusionModule, self).__init__()
         self.d_model = d_model
         self.w_att = nn.Linear(2 * d_model, d_model)
-        
+
     def forward(self, l_feature, v_feature):
         f = torch.cat((l_feature, v_feature), dim=2)
         f_att = torch.sigmoid(self.w_att(f))
@@ -171,7 +175,7 @@ class SCCM(nn.Module):
 
     def forward(self, out, tgt_mask, src_key_padding_mask):
         """
-        
+
         """
         out = rearrange(out, "b t d -> t b d")
         out = self.te(

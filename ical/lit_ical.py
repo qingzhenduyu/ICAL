@@ -8,7 +8,8 @@ from torch import FloatTensor, LongTensor
 
 from ical.datamodule import Batch, vocab
 from ical.model.ical import ICAL
-from ical.utils.utils import (ExpRateRecorder, Hypothesis, ce_loss, to_bi_tgt_out, plicit_tgt_out)
+from ical.utils.utils import (
+    ExpRateRecorder, Hypothesis, ce_loss, to_bi_tgt_out, plicit_tgt_out)
 
 
 class LitICAL(pl.LightningModule):
@@ -35,7 +36,7 @@ class LitICAL(pl.LightningModule):
         # training
         learning_rate: float,
         patience: int,
-        vocab_size: int=114,
+        vocab_size: int = 114,
     ):
         super().__init__()
         self.save_hyperparameters()
@@ -78,32 +79,44 @@ class LitICAL(pl.LightningModule):
         return self.ical_model(img, img_mask, tgt)
 
     def training_step(self, batch: Batch, _):
-        fusion_tgt, fusion_out = plicit_tgt_out(batch.indices, self.device, is_explicit=False, is_implicit=False)
-        exp_tgt, exp_out = plicit_tgt_out(batch.indices, self.device, is_explicit=False, is_implicit=False)
-        implicit_tgt, implicit_out = plicit_tgt_out(batch.indices, self.device, is_explicit=False, is_implicit=True)
+        fusion_tgt, fusion_out = plicit_tgt_out(
+            batch.indices, self.device, is_explicit=False, is_implicit=False)
+        exp_tgt, exp_out = plicit_tgt_out(
+            batch.indices, self.device, is_explicit=False, is_implicit=False)
+        implicit_tgt, implicit_out = plicit_tgt_out(
+            batch.indices, self.device, is_explicit=False, is_implicit=True)
 
-        exp_out_hat, imp_out_hat, fusion_out_hat = self(batch.imgs, batch.mask, exp_tgt)
+        exp_out_hat, imp_out_hat, fusion_out_hat = self(
+            batch.imgs, batch.mask, exp_tgt)
 
         exp_loss = ce_loss(exp_out_hat, exp_out)
         implicit_loss = ce_loss(imp_out_hat, implicit_out, need_weight=True)
         fusion_loss = ce_loss(fusion_out_hat, fusion_out)
 
-        self.log("train_implicit_loss", implicit_loss, on_step=False, on_epoch=True, sync_dist=True)
-        self.log("train_explicit_loss", exp_loss, on_step=False, on_epoch=True, sync_dist=True)
-        self.log("train_fusion_loss", fusion_loss, on_step=False, on_epoch=True, sync_dist=True)
+        self.log("train_implicit_loss", implicit_loss,
+                 on_step=False, on_epoch=True, sync_dist=True)
+        self.log("train_explicit_loss", exp_loss,
+                 on_step=False, on_epoch=True, sync_dist=True)
+        self.log("train_fusion_loss", fusion_loss,
+                 on_step=False, on_epoch=True, sync_dist=True)
 
         loss = exp_loss + implicit_loss + fusion_loss
-        self.log("train_loss", loss, on_step=False, on_epoch=True, sync_dist=True)
+        self.log("train_loss", loss, on_step=False,
+                 on_epoch=True, sync_dist=True)
 
         return loss
 
     def validation_step(self, batch: Batch, _):
-        fusion_tgt, fusion_out = plicit_tgt_out(batch.indices, self.device, is_explicit=False, is_implicit=False)
-        exp_tgt, exp_out = plicit_tgt_out(batch.indices, self.device, is_explicit=False, is_implicit=False)
-        implicit_tgt, implicit_out = plicit_tgt_out(batch.indices, self.device, is_explicit=False, is_implicit=True)
+        fusion_tgt, fusion_out = plicit_tgt_out(
+            batch.indices, self.device, is_explicit=False, is_implicit=False)
+        exp_tgt, exp_out = plicit_tgt_out(
+            batch.indices, self.device, is_explicit=False, is_implicit=False)
+        implicit_tgt, implicit_out = plicit_tgt_out(
+            batch.indices, self.device, is_explicit=False, is_implicit=True)
 
-        exp_out_hat, imp_out_hat, fusion_out_hat = self(batch.imgs, batch.mask, exp_tgt)
-        
+        exp_out_hat, imp_out_hat, fusion_out_hat = self(
+            batch.imgs, batch.mask, exp_tgt)
+
         exp_loss = ce_loss(exp_out_hat, exp_out)
         implicit_loss = ce_loss(imp_out_hat, implicit_out, need_weight=True)
         fusion_loss = ce_loss(fusion_out_hat, fusion_out)

@@ -19,7 +19,8 @@ class ScaleToLimitRange:
         r = h / w
         lo_r = self.h_lo / self.w_hi
         hi_r = self.h_hi / self.w_lo
-        assert lo_r <= h / w <= hi_r, f"img ratio h:w {r} not in range [{lo_r}, {hi_r}]"
+        assert lo_r <= h / \
+            w <= hi_r, f"img ratio h:w {r} not in range [{lo_r}, {hi_r}]"
 
         scale_r = min(self.h_hi / h, self.w_hi / w)
         if scale_r < 1.0:

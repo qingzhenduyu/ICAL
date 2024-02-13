@@ -23,7 +23,7 @@ class ICAL(pl.LightningModule):
         dc: int,
         cross_coverage: bool,
         self_coverage: bool,
-        vocab_size: int=114,
+        vocab_size: int = 114,
     ):
         super().__init__()
 

@@ -178,11 +178,13 @@ class DecodeModel(pl.LightningModule):
         """
         batch_size, cur_len = input_ids.shape
 
-        beam_scores = torch.zeros(batch_size, dtype=torch.float, device=self.device)
+        beam_scores = torch.zeros(
+            batch_size, dtype=torch.float, device=self.device)
 
         while cur_len < max_len and not beam_scorer.is_done():
             next_token_logits = (
-                self.transform(src, src_mask, input_ids)[:, -1, :] / temperature
+                self.transform(src, src_mask, input_ids)[
+                    :, -1, :] / temperature
             )
             # [b *, l, v]
             next_token_scores = F.log_softmax(next_token_logits, dim=-1)
@@ -210,7 +212,8 @@ class DecodeModel(pl.LightningModule):
                 input_ids = repeat(input_ids, "b l -> (b m) l", m=beam_size)
                 for i in range(len(src)):
                     src[i] = repeat(src[i], "b ... -> (b m) ...", m=beam_size)
-                    src_mask[i] = repeat(src_mask[i], "b ... -> (b m) ...", m=beam_size)
+                    src_mask[i] = repeat(
+                        src_mask[i], "b ... -> (b m) ...", m=beam_size)
 
             beam_scores, beam_next_tokens, beam_idx = beam_scorer.process(
                 input_ids=input_ids,

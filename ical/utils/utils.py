@@ -43,7 +43,8 @@ class ExpRateRecorder(Metric):
     def __init__(self, dist_sync_on_step=False):
         super().__init__(dist_sync_on_step=dist_sync_on_step)
 
-        self.add_state("total_line", default=torch.tensor(0.0), dist_reduce_fx="sum")
+        self.add_state("total_line", default=torch.tensor(
+            0.0), dist_reduce_fx="sum")
         self.add_state("rec", default=torch.tensor(0.0), dist_reduce_fx="sum")
 
     def update(self, indices_hat: List[List[int]], indices: List[List[int]]):
@@ -63,7 +64,8 @@ class ExpRateRecorder(Metric):
             self.total_line = 1
         exp_rate = self.rec / self.total_line
         return exp_rate
-    
+
+
 def smooth_weight_adjustment(targets, class_of_interest=3, base_weight=1.0, max_weight=10.0):
     """
     根据频率平滑调整权重，使用对数函数来调整。
@@ -113,8 +115,10 @@ def ce_loss(
         weights[:] = smooth_weight
         weights[class_of_interest] = 1.0
 
-    loss = F.cross_entropy(flat_hat, flat, weight=weights, ignore_index=ignore_idx, reduction=reduction)
+    loss = F.cross_entropy(flat_hat, flat, weight=weights,
+                           ignore_index=ignore_idx, reduction=reduction)
     return loss
+
 
 def to_tgt_output(
     tokens: Union[List[List[int]], List[LongTensor]],
@@ -143,11 +147,12 @@ def to_tgt_output(
 
     if isinstance(tokens[0], list):
         tokens = [torch.tensor(t, dtype=torch.long) for t in tokens]
-    
+
     if is_implicit:
         filtered_tokens = []
         for token in tokens:
-            mask = (token != vocab.word2idx['{'] ) & (token != vocab.word2idx['}'] ) & (token != vocab.word2idx['^'] ) & (token != vocab.word2idx['_'] )
+            mask = (token != vocab.word2idx['{']) & (token != vocab.word2idx['}']) & (
+                token != vocab.word2idx['^']) & (token != vocab.word2idx['_'])
             token[mask] = 3
             filtered_tokens.append(token)
         tokens = filtered_tokens
@@ -155,11 +160,12 @@ def to_tgt_output(
     if is_explicit:
         filtered_tokens = []
         for token in tokens:
-            mask = (token == vocab.word2idx['{'] ) | (token == vocab.word2idx['}'] ) | (token == vocab.word2idx['^'] ) | (token == vocab.word2idx['_'])
+            mask = (token == vocab.word2idx['{']) | (token == vocab.word2idx['}']) | (
+                token == vocab.word2idx['^']) | (token == vocab.word2idx['_'])
             token[mask] = 3
             filtered_tokens.append(token)
         tokens = filtered_tokens
-    
+
     if direction == "l2r":
         tokens = tokens
         start_w = vocab.SOS_IDX
@@ -191,7 +197,7 @@ def to_tgt_output(
 
     for i, token in enumerate(tokens):
         tgt[i, 0] = start_w
-        tgt[i, 1 : (1 + lens[i])] = token
+        tgt[i, 1: (1 + lens[i])] = token
 
         out[i, : lens[i]] = token
         out[i, lens[i]] = stop_w
@@ -223,9 +229,10 @@ def to_bi_tgt_out(
 
     return tgt, out
 
+
 def plicit_tgt_out(
     tokens: List[List[int]], device: torch.device, is_implicit: bool = False, is_explicit: bool = False,
-)-> Tuple[LongTensor, LongTensor]:
+) -> Tuple[LongTensor, LongTensor]:
     """Generate bidirection tgt and out
 
     Parameters
@@ -239,8 +246,10 @@ def plicit_tgt_out(
     Tuple[LongTensor, LongTensor]
         tgt, out: [2b, l], [2b, l]
     """
-    l2r_tgt, l2r_out = to_tgt_output(tokens, "l2r", device, is_explicit=is_explicit, is_implicit=is_implicit)
-    r2l_tgt, r2l_out = to_tgt_output(tokens, "r2l", device, is_explicit=is_explicit, is_implicit=is_implicit)
+    l2r_tgt, l2r_out = to_tgt_output(
+        tokens, "l2r", device, is_explicit=is_explicit, is_implicit=is_implicit)
+    r2l_tgt, r2l_out = to_tgt_output(
+        tokens, "r2l", device, is_explicit=is_explicit, is_implicit=is_implicit)
 
     tgt = torch.cat((l2r_tgt, r2l_tgt), dim=0)
     out = torch.cat((l2r_out, r2l_out), dim=0)

@@ -16,6 +16,8 @@ from .vocab import vocab
 Data = List[Tuple[str, np.ndarray, List[str]]]
 
 # load data
+
+
 def data_iterator(
     data: Data,
     batch_size: int,

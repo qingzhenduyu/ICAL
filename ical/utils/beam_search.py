@@ -106,7 +106,8 @@ class BeamSearchScorer:
                     if beam_token_rank >= self.beam_size:
                         # if beam_token does not belong to top num_beams tokens, it should not be added
                         continue
-                    beam_hyp.add(input_ids[batch_beam_idx].clone(), next_score.item())
+                    beam_hyp.add(
+                        input_ids[batch_beam_idx].clone(), next_score.item())
                 else:
                     # add next predicted token since it is not eos_token
                     next_beam_scores[batch_idx, beam_idx] = next_score

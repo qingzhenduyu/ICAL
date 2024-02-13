@@ -39,12 +39,16 @@ class MultiheadAttention(nn.Module):
         ), "embed_dim must be divisible by num_heads"
 
         if self._qkv_same_embed_dim is False:
-            self.q_proj_weight = nn.Parameter(torch.Tensor(embed_dim, embed_dim))
-            self.k_proj_weight = nn.Parameter(torch.Tensor(embed_dim, self.kdim))
-            self.v_proj_weight = nn.Parameter(torch.Tensor(embed_dim, self.vdim))
+            self.q_proj_weight = nn.Parameter(
+                torch.Tensor(embed_dim, embed_dim))
+            self.k_proj_weight = nn.Parameter(
+                torch.Tensor(embed_dim, self.kdim))
+            self.v_proj_weight = nn.Parameter(
+                torch.Tensor(embed_dim, self.vdim))
             self.register_parameter("in_proj_weight", None)
         else:
-            self.in_proj_weight = nn.Parameter(torch.empty(3 * embed_dim, embed_dim))
+            self.in_proj_weight = nn.Parameter(
+                torch.empty(3 * embed_dim, embed_dim))
             self.register_parameter("q_proj_weight", None)
             self.register_parameter("k_proj_weight", None)
             self.register_parameter("v_proj_weight", None)
@@ -186,7 +190,8 @@ def multi_head_attention_forward(
             key is value or torch.equal(key, value)
         ):
             # self-attention
-            q, k, v = F.linear(query, in_proj_weight, in_proj_bias).chunk(3, dim=-1)
+            q, k, v = F.linear(query, in_proj_weight,
+                               in_proj_bias).chunk(3, dim=-1)
 
         elif key is value or torch.equal(key, value):
             # encoder-decoder attention
@@ -255,11 +260,14 @@ def multi_head_attention_forward(
         assert len1 == embed_dim and len2 == value.size(-1)
 
         if in_proj_bias is not None:
-            q = F.linear(query, q_proj_weight_non_opt, in_proj_bias[0:embed_dim])
+            q = F.linear(query, q_proj_weight_non_opt,
+                         in_proj_bias[0:embed_dim])
             k = F.linear(
-                key, k_proj_weight_non_opt, in_proj_bias[embed_dim : (embed_dim * 2)]
+                key, k_proj_weight_non_opt, in_proj_bias[embed_dim: (
+                    embed_dim * 2)]
             )
-            v = F.linear(value, v_proj_weight_non_opt, in_proj_bias[(embed_dim * 2) :])
+            v = F.linear(value, v_proj_weight_non_opt,
+                         in_proj_bias[(embed_dim * 2):])
         else:
             q = F.linear(query, q_proj_weight_non_opt, in_proj_bias)
             k = F.linear(key, k_proj_weight_non_opt, in_proj_bias)
@@ -285,13 +293,16 @@ def multi_head_attention_forward(
         if attn_mask.dim() == 2:
             attn_mask = attn_mask.unsqueeze(0)
             if list(attn_mask.size()) != [1, query.size(0), key.size(0)]:
-                raise RuntimeError("The size of the 2D attn_mask is not correct.")
+                raise RuntimeError(
+                    "The size of the 2D attn_mask is not correct.")
         elif attn_mask.dim() == 3:
             if list(attn_mask.size()) != [bsz * num_heads, query.size(0), key.size(0)]:
-                raise RuntimeError("The size of the 3D attn_mask is not correct.")
+                raise RuntimeError(
+                    "The size of the 3D attn_mask is not correct.")
         else:
             raise RuntimeError(
-                "attn_mask's dimension {} is not supported".format(attn_mask.dim())
+                "attn_mask's dimension {} is not supported".format(
+                    attn_mask.dim())
             )
         # attn_mask's dim is 3 now.
 
@@ -365,7 +376,8 @@ def multi_head_attention_forward(
             key_padding_mask = F.pad(key_padding_mask, (0, 1))
 
     attn_output_weights = torch.bmm(q, k.transpose(1, 2))
-    assert list(attn_output_weights.size()) == [bsz * num_heads, tgt_len, src_len]
+    assert list(attn_output_weights.size()) == [
+        bsz * num_heads, tgt_len, src_len]
 
     def mask_softmax_dropout(dots):
         if attn_mask is not None:
@@ -393,7 +405,8 @@ def multi_head_attention_forward(
 
     attn_output = torch.bmm(attention, v)
     assert list(attn_output.size()) == [bsz * num_heads, tgt_len, head_dim]
-    attn_output = attn_output.transpose(0, 1).contiguous().view(tgt_len, bsz, embed_dim)
+    attn_output = attn_output.transpose(
+        0, 1).contiguous().view(tgt_len, bsz, embed_dim)
     attn_output = F.linear(attn_output, out_proj_weight, out_proj_bias)
 
     if need_weights:
