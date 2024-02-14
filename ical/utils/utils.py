@@ -68,21 +68,20 @@ class ExpRateRecorder(Metric):
 
 def smooth_weight_adjustment(targets, class_of_interest=3, base_weight=1.0, max_weight=10.0):
     """
-    根据频率平滑调整权重，使用对数函数来调整。
-
-    :param frequency: 类别在目标中的出现频率
-    :param base_weight: 基础权重
-    :param max_weight: 权重的最大值
-    :return: 调整后的权重
+    Adjust weights based on frequency smoothing, using a logarithmic function for adjustment.
+    Args:
+        frequency: (torch.Tensor): [batch, len]
+    Returns:
+        torch.Tensor: adjusted weight
     """
     class_count = torch.sum(targets == class_of_interest)
     total_count = torch.numel(targets)
     frequency = class_count.float() / total_count
 
-    # 使用对数函数调整权重
+    # use a logarithmic function
     weight = base_weight + torch.log1p(1 / ((1-frequency) + 1e-6))
 
-    # 限制权重不超过最大值
+    # limit to max weight
     weight = torch.clamp(weight, max=max_weight)
     return weight
 
@@ -111,7 +110,6 @@ def ce_loss(
     if need_weight:
         weights = torch.ones(len(vocab), device=output_hat.device)
         smooth_weight = smooth_weight_adjustment(flat)
-        # print(smooth_weight)
         weights[:] = smooth_weight
         weights[class_of_interest] = 1.0
 

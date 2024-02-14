@@ -149,20 +149,6 @@ class Decoder(DecodeModel):
         exp_out, imp_out, fusion_out = self(src[0], src_mask[0], input_ids)
         return fusion_out
 
-
-class FusionModule(nn.Module):
-    def __init__(self,  d_model: int,):
-        super(FusionModule, self).__init__()
-        self.d_model = d_model
-        self.w_att = nn.Linear(2 * d_model, d_model)
-
-    def forward(self, l_feature, v_feature):
-        f = torch.cat((l_feature, v_feature), dim=2)
-        f_att = torch.sigmoid(self.w_att(f))
-        output = f_att * v_feature + (1 - f_att) * l_feature
-        return output
-
-
 class SCCM(nn.Module):
     def __init__(self, d_model):
         super().__init__()
@@ -173,9 +159,21 @@ class SCCM(nn.Module):
             num_layers=1,
         )
 
-    def forward(self, out, tgt_mask, src_key_padding_mask):
-        """
+    def forward(self, out: FloatTensor, tgt_mask: LongTensor, src_key_padding_mask: LongTensor):
+        """generate implicit logits
 
+        Parameters
+        ----------
+        out : FloatTensor
+            [b, l, d]
+        tgt_mask: LongTensor
+            [b, l]
+        src_key_padding_mask: LongTensor
+            [b, l, d]
+        Returns
+        -------
+        FloatTensor
+            [b, l, d]
         """
         out = rearrange(out, "b t d -> t b d")
         out = self.te(
@@ -184,3 +182,30 @@ class SCCM(nn.Module):
         out = rearrange(out, "t b d -> b t d")
 
         return out
+
+
+class FusionModule(nn.Module):
+    def __init__(self,  d_model: int,):
+        super(FusionModule, self).__init__()
+        self.d_model = d_model
+        self.w_att = nn.Linear(2 * d_model, d_model)
+
+    def forward(self, e_feature: FloatTensor, i_feature: FloatTensor):
+        """generate output fusing e_feature & i_feature
+
+        Parameters
+        ----------
+        e_feature : FloatTensor
+            [b, l, d]
+        i_feature: FloatTensor
+            [b, l, d]
+
+        Returns
+        -------
+        FloatTensor
+            [b, l, d]
+        """
+        f = torch.cat((e_feature, i_feature), dim=2)
+        f_att = torch.sigmoid(self.w_att(f))
+        output = f_att * i_feature + (1 - f_att) * e_feature
+        return output
