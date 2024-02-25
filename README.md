@@ -60,7 +60,7 @@ gpus: 1
 ```
 
 ## Training on HME100k Dataset
-Next, navigate to ICAL folder and run `train.py`. It may take **32~33** hours on **4** NVIDIA 2080Ti gpus using ddp.
+It may take **32~33** hours on **4** NVIDIA 2080Ti gpus using ddp on HME100k dataset.
 ```bash
 # train ICAL model using 4 gpus and ddp on hme100k dataset
 python -u train.py --config config/hme100k.yaml
@@ -76,4 +76,10 @@ bash eval/eval_crohme.sh 0
 # For HME100K Dataset
 bash eval/eval_hme100k.sh 1
 ```
+
+## Reference
+- [CoMER](https://github.com/Green-Wood/CoMER) | [arXiv](https://arxiv.org/abs/2207.04410)
+- [BTTR](https://github.com/Green-Wood/BTTR) | [arXiv](https://arxiv.org/abs/2105.02412)
+- [TreeDecoder](https://github.com/JianshuZhang/TreeDecoder)
+- [CAN](https://github.com/LBH1024/CAN) | [arXiv](https://arxiv.org/abs/2207.11463)
 
