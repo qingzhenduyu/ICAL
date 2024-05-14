@@ -11,12 +11,12 @@ trainer:
         monitor: val_ExpRate
         mode: max
         filename: '{epoch}-{step}-{val_ExpRate:.4f}'
-  # gpus: 1
-  gpus: 0, 1, 2, 3
+  gpus: 0, 1,  2, 3
   accelerator: ddp
-  max_epochs: 70
+  max_epochs: 120
   deterministic: true
   check_val_every_n_epoch: 2
+  # resume_from_checkpoint: 
 model:
   d_model: 256
   # encoder
@@ -40,6 +40,8 @@ model:
   # training
   learning_rate: 0.08
   patience: 10
+  dynamic_weight: false
+
 data:
   folder: data/hme100k
   test_folder: test

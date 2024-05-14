@@ -1,6 +1,7 @@
 <div align="center">    
  
 # ICAL: Implicit Character-Aided Learning for Enhanced Handwritten Mathematical Expression Recognition 
+[![arXiv](https://img.shields.io/badge/arXiv-2105.02412-b31b1b.svg)](https://arxiv.org/abs/2405)
 
 </div>
 

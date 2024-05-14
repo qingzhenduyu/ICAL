@@ -3,6 +3,7 @@ from typing import List
 import editdistance
 import json
 import pytorch_lightning as pl
+import torch
 import torch.optim as optim
 from torch import FloatTensor, LongTensor
 
@@ -36,6 +37,8 @@ class LitICAL(pl.LightningModule):
         # training
         learning_rate: float,
         patience: int,
+        milestones: List[int] = [40, 55],
+        dynamic_weight: bool = True,
         vocab_size: int = 114,
     ):
         super().__init__()
@@ -90,7 +93,8 @@ class LitICAL(pl.LightningModule):
             batch.imgs, batch.mask, exp_tgt)
 
         exp_loss = ce_loss(exp_out_hat, exp_out)
-        implicit_loss = ce_loss(imp_out_hat, implicit_out, need_weight=True)
+        implicit_loss = ce_loss(imp_out_hat, implicit_out,
+                                need_weight=self.hparams.dynamic_weight)
         fusion_loss = ce_loss(fusion_out_hat, fusion_out)
 
         self.log("train_implicit_loss", implicit_loss,
@@ -118,7 +122,8 @@ class LitICAL(pl.LightningModule):
             batch.imgs, batch.mask, exp_tgt)
 
         exp_loss = ce_loss(exp_out_hat, exp_out)
-        implicit_loss = ce_loss(imp_out_hat, implicit_out, need_weight=True)
+        implicit_loss = ce_loss(imp_out_hat, implicit_out,
+                                need_weight=self.hparams.dynamic_weight)
         fusion_loss = ce_loss(fusion_out_hat, fusion_out)
 
         self.log(
@@ -162,15 +167,21 @@ class LitICAL(pl.LightningModule):
         self.exprate_recorder([h.seq for h in hyps], batch.indices)
         gts = [vocab.indices2words(ind) for ind in batch.indices]
         preds = [vocab.indices2words(h.seq) for h in hyps]
-        return batch.img_bases, preds, gts
+
+        implicit_pred_tokens = self.gen_implicit_tokens(batch, hyps)
+        im_pred_tokens = [vocab.indices2words(
+            tokens) for tokens in implicit_pred_tokens]
+
+        return batch.img_bases, preds, gts, im_pred_tokens
 
     def test_epoch_end(self, test_outputs) -> None:
         exprate = self.exprate_recorder.compute()
         print(f"Validation ExpRate: {exprate}")
         errors_dict = {}
+        predictions_dict = {}
         with zipfile.ZipFile("result.zip", "w") as zip_f:
-            for img_bases, preds, gts, in test_outputs:
-                for img_base, pred, gt in zip(img_bases, preds, gts):
+            for img_bases, preds, gts, im_pred_tokens in test_outputs:
+                for img_base, pred, gt, im_pred_token in zip(img_bases, preds, gts, im_pred_tokens):
                     content = f"%{img_base}\n${pred}$".encode()
                     with zip_f.open(f"{img_base}.txt", "w") as f:
                         f.write(content)
@@ -180,9 +191,19 @@ class LitICAL(pl.LightningModule):
                             "pred": " ".join(pred),
                             "gt": " ".join(gt),
                             "dist": distance,
+                            "im_tokens": " ".join(im_pred_token),
                         }
+
+                    predictions_dict[img_base] = {
+                        "pred": " ".join(pred),
+                        "gt": " ".join(gt),
+                        "dist": distance,
+                        "im_tokens": " ".join(im_pred_token),
+                    }
         with open("errors.json", "w") as f:
             json.dump(errors_dict, f)
+        with open("predictions.json", "w") as f:
+            json.dump(predictions_dict, f)
 
     def approximate_joint_search(
         self, img: FloatTensor, mask: LongTensor
@@ -212,3 +233,18 @@ class LitICAL(pl.LightningModule):
         }
 
         return {"optimizer": optimizer, "lr_scheduler": scheduler}
+
+    def gen_implicit_tokens(self, batch: Batch, hyps: List[Hypothesis]):
+        hyps_list = [h.seq for h in hyps]
+        fusion_tgt, fusion_out = plicit_tgt_out(
+            hyps_list, self.device, is_explicit=False, is_implicit=False)
+        exp_tgt, exp_out = plicit_tgt_out(
+            hyps_list, self.device, is_explicit=False, is_implicit=False)
+        implicit_tgt, implicit_out = plicit_tgt_out(
+            hyps_list, self.device, is_explicit=False, is_implicit=True)
+
+        exp_out_hat, imp_out_hat, fusion_out_hat = self(
+            batch.imgs, batch.mask, exp_tgt)
+        _, max_indices = torch.max(imp_out_hat, dim=2)
+        max_indices = max_indices[:4, :].tolist()
+        return max_indices

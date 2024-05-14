@@ -11,7 +11,6 @@ trainer:
         monitor: val_ExpRate
         mode: max
         filename: '{epoch}-{step}-{val_ExpRate:.4f}'
-  # gpus: 1
   gpus: 0, 1, 2, 3
   accelerator: ddp
   check_val_every_n_epoch: 2
@@ -40,6 +39,7 @@ model:
   # training
   learning_rate: 0.08
   patience: 20
+  dynamic_weight: true
 data:
   folder: data/crohme
   test_folder: 2014

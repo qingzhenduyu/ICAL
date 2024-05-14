@@ -41,6 +41,10 @@ def main(
         "errors.json",
         os.path.join(ckp_folder, os.pardir, f"errors_{test_year}.json"),
     )
+    os.rename(
+        "predictions.json",
+        os.path.join(ckp_folder, os.pardir, f"pred_{test_year}.json"),
+    )
 
     # Calculate ExpRate
     test_num = years[test_year]
