@@ -1,7 +1,7 @@
 <div align="center">    
  
 # ICAL: Implicit Character-Aided Learning for Enhanced Handwritten Mathematical Expression Recognition 
-[![arXiv](https://img.shields.io/badge/arXiv-2105.02412-b31b1b.svg)](https://arxiv.org/abs/2405)
+[![arXiv](https://img.shields.io/badge/arXiv-2405.09032-b31b1b.svg)](https://arxiv.org/abs/2405.09032)
 
 </div>
 
@@ -21,7 +21,7 @@
 │       └── hparams.yaml
 │   └── version_1      # ckpt for HME100k dataset
 │       ├── checkpoints
-│       │   └── 
+│       │   └── epoch=55-step=175503-val_ExpRate=0.6924.ckpt
 │       ├── config.yaml
 │       └── hparams.yaml
 ├── .gitignore
@@ -45,8 +45,7 @@ conda install pandoc=1.19.2.1 -c conda-forge
 pip install -e .
  ```
 ## Dataset Preparation
-We have prepared the CROHME dataset in this GitHub repository, under the `data/crohme/` folder. 
-The HME100K dataset is larger and requires downloading. We have provided a [download link](https://disk.pku.edu.cn/link/AAF68D1921C04943A685785F90F70A41EF). After downloading, please extract it to the `data/hme100k/` folder.
+We have prepared the CROHME dataset and HME100K dataset in [download link](https://disk.pku.edu.cn/link/AAF10CCC4D539543F68847A9010C607139). After downloading, please extract it to the `data/` folder.
 
 ## Training on CROHME Dataset
 Next, navigate to ICAL folder and run `train.py`. It may take **8~9** hours on **4** NVIDIA 2080Ti gpus using ddp.
@@ -61,7 +60,7 @@ gpus: 1
 ```
 
 ## Training on HME100k Dataset
-It may take **32~33** hours on **4** NVIDIA 2080Ti gpus using ddp on HME100k dataset.
+It may take about **48** hours on **4** NVIDIA 2080Ti gpus using ddp on HME100k dataset.
 ```bash
 # train ICAL model using 4 gpus and ddp on hme100k dataset
 python -u train.py --config config/hme100k.yaml
@@ -76,6 +75,19 @@ bash eval/eval_crohme.sh 0
 
 # For HME100K Dataset
 bash eval/eval_hme100k.sh 1
+```
+
+### Citation   
+```
+@article{zhu2024ical,
+      title={ICAL: Implicit Character-Aided Learning for Enhanced Handwritten Mathematical Expression Recognition}, 
+      author={Jianhua Zhu and Liangcai Gao and Wenqi Zhao},
+      year={2024},
+      eprint={2405.09032},
+      archivePrefix={arXiv},
+      primaryClass={cs.CV},
+      
+}
 ```
 
 ## Reference
