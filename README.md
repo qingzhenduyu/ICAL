@@ -76,6 +76,29 @@ bash eval/eval_crohme.sh 0
 # For HME100K Dataset
 bash eval/eval_hme100k.sh 1
 ```
+## Experimental Results
+Given the relative small size of the CROHME dataset, we conducted experiments with both the baseline CoMER and the proposed ICAL model using five different random seeds (7, 77, 777, 7777, 77777) under the same experimental conditions. The reported results are the averages and standard deviations of these five experiments.
+
+| Method    | CROHME 2014 ExpRate↑ | CROHME 2014 ≤1↑ | CROHME 2014 ≤2↑ | CROHME 2016 ExpRate↑ | CROHME 2016 ≤1↑ | CROHME 2016 ≤2↑ | CROHME 2019 ExpRate↑ | CROHME 2019 ≤1↑ | CROHME 2019 ≤2↑ |
+|-----------|----------------------|-----------------|-----------------|----------------------|-----------------|-----------------|----------------------|-----------------|-----------------|
+| BTTR      | 53.96                | 66.02           | 70.28           | 52.31                | 63.90           | 68.61           | 52.96                | 65.97           | 69.14           |
+| GCN*      | 60.00                | -               | -               | 58.94                | -               | -               | 61.63                | -               | -               |
+| CoMER†    | 58.38±0.62           | 74.48±1.41      | 81.14±0.91      | 56.98±1.41           | 74.44±0.93      | 81.87±0.73      | 59.12±0.43           | 77.45±0.70      | 83.87±0.80      |
+| **ICAL**  | **60.63±0.61**       | **75.99±0.77**  | **82.80±0.40**  | **58.79±0.73**       | **76.06±0.37**  | **83.38±0.16**  | **60.51±0.71**       | **78.00±0.66**  | **84.63±0.45**  |
+
+
+| Method    | HME100K ExpRate↑ | HME100K ≤1↑    | HME100K ≤2↑    |
+|-----------|------------------|----------------|----------------|
+| DenseWAP  | 61.85            | 70.63          | 77.14          |
+| DenseWAP-TD | 62.60          | 79.05          | 85.67          |
+| ABM       | 65.93            | 81.16          | 87.86          |
+| SAN       | 67.1             | -              | -              |
+| CAN-DWAP  | 67.31            | 82.93          | 89.17          |
+| CAN-ABM   | 68.09            | 83.22          | 89.91          |
+| BTTR      | 64.1             | -              | -              |
+| CoMER†    | 68.12            | 84.20          | 89.71          |
+| **ICAL**  | **69.06±0.16**   | **85.16±0.13** | **90.61±0.09** |
+
 
 ### Citation   
 ```
